@@ -1,0 +1,54 @@
+[
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/actions/custom-actions.md",
+  "yaml": "  action_to_run: http.getV2\n  connection_optional: false\n  parameters:\n      - name: project\n        display_name: Project\n        description: Project ID for this request.\n        required: true\n        type: dynamic_dropdown\n        group_type: basic\n        autofill:\n          fetcher: gcp.SearchProjects\n      - name: region\n        display_name: Region\n        description: Name of the region scoping this request.\n        required: true\n        type: string\n        group_type: basic\n      - name: targetHttpsProxy\n        display_name: Target Https Proxy\n        description: Name of the TargetHttpsProxy resource to return.\n        required: true\n        type: string\n        group_type: basic\n  action_to_run_param_values:\n      retryOnRateLimit: \"true\"\n      url: https://compute.googleapis.com/compute/v1/projects/{{params[\"project\"]}}/regions/{{params[\"region\"]}}/targetHttpsProxies/{{params[\"targetHttpsProxy\"]}}?alt=json\n  "
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/dynamic-variables/expression-language/workflow-engine-variables.md",
+  "yaml": "{{ event.payload }}             # full event payload\n{{ event.payload.issue.user }}  # fetch the value of user attribute in event payload that can look like this: { \"issue\": {\"user\": \"me\" }}\n"
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/dynamic-variables/expression-language/workflow-engine-variables.md",
+  "yaml": "{{ steps.S1.output }} #  S1 refers to the step\u2019s ID\n"
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/dynamic-variables/expression-language/workflow-engine-variables.md",
+  "yaml": "{{ metadata.automation_name }}  # Workflow name\n{{ metadata.automation_url }}   # Workflow link\n{{ metadata.automation_id }}    # Workflow ID\n{{ metadata.workspace_id }}      # Workspace ID\n{{ metadata.pack_id }}          # Pack ID\n{{ metadata.execution_id }}     # Execution ID\n{{ metadata.execution_url }}    # Execution link\n{{ metadata.start_time }}       # Execution start time\n{{ metadata.user_email }}       # User who started execution\n{{ metadata.user_groups }}      # User's assigned groups\n"
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/dynamic-variables/expression-language/workflow-engine-variables.md",
+  "yaml": "context.inputs.param_name  # Input parameter\ncontext.steps.S1.output  # Step output\ncontext.steps.S1.output.user.id  # Specific key in step output\ncontext.steps.last.output  # Last executed step output\ncontext.steps.S1.status  # Step status\ncontext.event.payload  # Full event payload\ncontext.event.payload.issue.user  # Specific key in event payload\ncontext.metadata.automation_name  # Metadata variable\n"
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/dynamic-variables/expression-language/workflow-engine-variables.md",
+  "yaml": "context.variables.variable_name = value # Assign a value to a workflow variable\n"
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/workflow-yaml.md",
+  "yaml": "input-field-name:\n  sub-input-field: value\n  sub-input-field-2: value2\n"
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/workflow-yaml.md",
+  "yaml": "transitions:\n  - on: true\n    steps: ...\n  - on: false\n    steps: ...\n"
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/workflow-yaml.md",
+  "yaml": "    name: output parameters\n    type: Flow\n    automation_type: on_demand\n    inputs:\n      name:\n        default: Ofir\n        display_name: Name\n        name: name\n        placeholder: Enter your name\n        required: true\n        type: text\n    outputs:\n      Welcome Message: \"{{ steps.S1.output }}\"\n    workflow:\n      - section: Formatting\n        steps:\n          - action: core.bash\n            id: S1\n            name: Format welcome message\n            inputs:\n              code: echo \"Welcome, {{inputs.name}}!\"\n    counting_steps: 0\n    "
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/workflow-yaml.md",
+  "yaml": "    name: if condition game\n    type: Flow\n    automation_type: on_demand\n    inputs:\n      number:\n        default: 111\n        display_name: Number\n        name: number\n        placeholder: Enter your best guess\n        required: true\n        type: number\n    workflow:\n      - section: Game with If Conditions\n        steps:\n          - action: core.bash\n            id: S1\n            name: \"#Action #1\"\n            inputs:\n              code: 'echo \"Welcome, You provided the number: {{inputs.number}}\"'\n          - action: internal.if\n            id: S2\n            name: Is it the winning number\n            inputs:\n              condition:\n                sentence:\n                  - lvalue: \"{{inputs.number}}\"\n                    op: Equals\n                    rvalue: 7\n            transitions:\n              - on: true\n                steps:\n                  - action: core.bash\n                    id: S3\n                    name: Winning Number\n                    inputs:\n                      code: echo \"You Won, Our number is 7\"\n              - on: false\n                steps:\n                  - action: internal.if\n                    id: S4\n                    name: Below or Above\n                    inputs:\n                      condition:\n                        sentence:\n                          - lvalue: \"{{inputs.number}}\"\n                            op: Greater than\n                            rvalue: 7\n                    transitions:\n                      - on: true\n                        steps:\n                          - action: core.bash\n                            id: S5\n                            name: Above\n                            inputs:\n                              code: echo \"You number is above our number!\"\n                      - on: false\n                        steps:\n                          - action: core.bash\n                            id: S6\n                            name: Below\n                            inputs:\n                              code: echo \"Your number is below our number!\"\n      - section: Finish\n        steps:\n          - action: core.bash\n            id: S7\n            name: Thanks for playing\n            inputs:\n              code: echo \"Thanks for playing!\"\n    counting_steps: 0\n    "
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/workflow-yaml.md",
+  "yaml": "    name: connections\n    type: Flow\n    automation_type: on_demand\n    workflow:\n      - section: Ask question using Slack connection\n        steps:\n          - id: S1\n            name: Ask a question via Slack\n            action: system.AskQuestionViaSlack\n            connections:\n              slack: slack_connection\n            inputs:\n              To: test@test.com\n              Question: Hey how are you?\n              Answers: Fine how are you?, Sick :( and you?\n    counting_steps: 0\n    "
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/workflow-yaml.md",
+  "yaml": "    name: scheduled workflow\n    type: Flow\n    automation_type: scheduled\n    runner: blink_cloud\n    triggers:\n      scheduled:\n        - id: UUID\n          active: true\n          trigger_type: schedule\n          cron: 0 * * * *\n    workflow:\n      - section: Every Hour Send A Report\n        steps:\n          - id: S1\n            name: Getting the number of EC2 instances\n            action: core.aws\n            inputs:\n              Command: aws ec2 describe-instances --query\n                'Reservations[*].Instances[*].[InstanceId]' --output text | wc -l\n            connections:\n              kubernetes: kubernetes\n          - id: S2\n            name: Send Report\n            action: core.email\n            inputs:\n              To: test@report.com\n              Subject: Number of pods in the cluster\n              Content:\n                According to {{ Now() }} we have {{steps.S1.output}} running ec2\n                instances\n    counting_steps: 0\n    "
+ },
+ {
+  "source": "https://docs.blinkops.com/docs/workflows/building-workflows/workflow-yaml.md",
+  "yaml": "    name: event based\n    type: Flow\n    automation_type: event\n    runner: blink_cloud\n    triggers:\n      webhooks:\n        - id: UUID\n          active: true\n          token: WEBHOOK_TOKEN\n          name: my webhook\n          trigger_type: custom_webhook\n          condition:\n            sentence:\n              - lvalue: \"{{event.status}}\"\n                op: Equals\n                rvalue: Approved\n    workflow:\n      - section: Event Handling\n        steps:\n          - id: S1\n            name: Print out the event with its content\n            action: core.bash\n            inputs:\n              code: echo {{event}}\n    counting_steps: 0\n    "
+ }
+]

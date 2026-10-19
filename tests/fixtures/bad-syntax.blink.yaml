@@ -1,0 +1,4 @@
+# expect: yaml-syntax
+name: x
+workflow:
+  - section: [unclosed

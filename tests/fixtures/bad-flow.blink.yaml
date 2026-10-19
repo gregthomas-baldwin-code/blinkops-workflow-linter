@@ -1,0 +1,18 @@
+# expect: for-items, if-condition, if-branch, schema
+name: Bad flow
+automation_type: on_demand
+workflow:
+  - section: Steps
+    steps:
+      - action: internal.for
+        id: S1
+        steps:
+          - action: core.bash
+            id: S2
+            inputs:
+              code: ok
+      - action: internal.ifCondition
+        id: S3
+        steps: []
+      - action: core.bash
+        name: missing id

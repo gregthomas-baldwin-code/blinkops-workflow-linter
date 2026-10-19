@@ -1,0 +1,44 @@
+# expect:
+name: Valid example
+type: Flow
+automation_type: on_demand
+desc: Loop over users and notify.
+inputs:
+  channel:
+    display_name: Channel
+    type: text
+    required: true
+workflow:
+  - section: Steps
+    steps:
+      - text: |
+          ## Notes
+          Anything goes in here: {{ not an expression
+      - action: core.emailV2
+        id: S1
+        name: Send
+        inputs:
+          To: me@example.com
+          Subject: Hi {{inputs.channel}}
+          Content: Done
+          contentType: text/plain
+      - action: internal.for
+        id: S2
+        name: Loop
+        inputs:
+          items: '{{steps.S1.output}}'
+        steps:
+          - action: internal.ifCondition
+            id: S3
+            inputs:
+              condition:
+                sentence:
+                  - lvalue: '{{steps.S2.item.name}}'
+                    op: Equals
+                    rvalue: bob
+            steps:
+              - action: internal.ifTrueBranch
+                id: S4
+                steps: []
+outputs:
+  result: '{{ to_upper(steps.S1.output) }}'

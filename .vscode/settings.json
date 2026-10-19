@@ -1,0 +1,6 @@
+{
+  "yaml.schemas": {
+    "./schemas/blink-workflow.schema.json": ["*.blink.yaml", "*.blink.yml", "tests/fixtures/*.yaml"]
+  },
+  "files.associations": { "*.blink.yaml": "yaml", "*.blink.yml": "yaml" }
+}

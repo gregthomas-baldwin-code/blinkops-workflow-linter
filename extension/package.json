@@ -1,0 +1,37 @@
+{
+  "name": "blink-workflow-linter",
+  "displayName": "BlinkOps Workflow Linter",
+  "description": "Validate BlinkOps workflow YAML: structure, step ids, {{ }} expressions, flow control, action inputs, cron.",
+  "version": "0.1.0",
+  "publisher": "blinkops-local",
+  "license": "UNLICENSED",
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Linters"],
+  "activationEvents": ["onLanguage:yaml"],
+  "main": "./extension.js",
+  "extensionDependencies": [],
+  "contributes": {
+    "commands": [
+      { "command": "blink.lintFile", "title": "Blink: Lint Current File" },
+      { "command": "blink.explain", "title": "Blink: Explain Workflow" },
+      { "command": "blink.about", "title": "Blink: Show Linter Info" }
+    ],
+    "yamlValidation": [
+      { "fileMatch": ["*.blink.yaml", "*.blink.yml"], "url": "./data/blink-workflow.schema.json" }
+    ],
+    "configuration": {
+      "title": "BlinkOps Workflow Linter",
+      "properties": {
+        "blink.pythonPath": { "type": "string", "default": "python3", "description": "Python 3 interpreter with PyYAML and jsonschema installed." },
+        "blink.filePatterns": {
+          "type": "array", "items": { "type": "string" },
+          "default": ["**/*.blink.yaml", "**/*.blink.yml"],
+          "description": "Glob patterns of files always linted. Other YAML files are linted when they look like a Blink workflow (top-level 'workflow:' plus 'automation_type:' or 'name:')."
+        },
+        "blink.sniffWorkflows": { "type": "boolean", "default": true, "description": "Lint any YAML file that looks like a Blink workflow." },
+        "blink.lintOnType": { "type": "boolean", "default": true, "description": "Lint while typing (debounced). Otherwise on open and save." },
+        "blink.dataPath": { "type": "string", "default": "", "description": "Override folder holding schema/action-index/core JSON (e.g. a refreshed catalog)." }
+      }
+    }
+  }
+}

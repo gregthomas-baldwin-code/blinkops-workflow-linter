@@ -1,0 +1,18 @@
+# expect: undeclared-input, step-ref-undefined, step-ref-forward, duplicate-id, expr-unbalanced, expr-unknown-function
+name: Bad refs
+automation_type: on_demand
+workflow:
+  - section: Steps
+    steps:
+      - action: core.bash
+        id: S1
+        inputs:
+          code: echo {{inputs.missing}} {{steps.S9.output}} {{steps.S3.output}} {{ nopeFn(1) }}
+      - action: core.bash
+        id: S1
+        inputs:
+          code: '{{inputs.x}'
+      - action: core.bash
+        id: S3
+        inputs:
+          code: ok

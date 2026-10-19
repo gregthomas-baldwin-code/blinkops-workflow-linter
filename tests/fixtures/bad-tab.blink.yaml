@@ -1,0 +1,8 @@
+# expect: tab-indent
+name: x
+automation_type: on_demand
+workflow:
+  - section: S
+    steps:
+      - text: |
+	  tab inside block

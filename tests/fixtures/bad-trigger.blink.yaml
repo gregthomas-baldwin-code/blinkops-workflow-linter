@@ -1,0 +1,11 @@
+# expect: cron, schema
+name: Bad triggers
+automation_type: scheduled
+colour: red
+triggers:
+  scheduled:
+    - cron: 61 * * *
+      trigger_type: schedule
+workflow:
+  - section: Steps
+    steps: []

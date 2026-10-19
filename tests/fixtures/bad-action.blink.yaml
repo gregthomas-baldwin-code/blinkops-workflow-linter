@@ -1,0 +1,16 @@
+# expect: unknown-integration, unknown-input
+name: Bad actions
+automation_type: on_demand
+workflow:
+  - section: Steps
+    steps:
+      - action: notarealvendor.DoThing
+        id: S1
+      - action: core.emailV2
+        id: S2
+        inputs:
+          To: a@b.c
+          Subjcet: typo
+          Subject: ok
+          Content: x
+          contentType: text/plain

@@ -1,0 +1,8 @@
+.cache/
+build/
+dist/
+extension/bin/
+catalog/library/
+__pycache__/
+.DS_Store
+HANDOFF.md

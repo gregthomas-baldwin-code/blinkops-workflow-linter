@@ -1,0 +1,460 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.invalid/blink-workflow.schema.json",
+  "title": "BlinkOps workflow",
+  "description": "Structure of a Blink workflow YAML. Derived from docs.blinkops.com and ~8.7k public library workflows (see scripts/mine_library.py). Action-specific inputs are checked by the extension, not by this schema.",
+  "type": "object",
+  "required": [
+    "name",
+    "workflow"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Workflow name."
+    },
+    "type": {
+      "enum": [
+        "Flow",
+        "Subflow"
+      ],
+      "description": "Flow (default) or Subflow (callable from other workflows)."
+    },
+    "automation_type": {
+      "enum": [
+        "on_demand",
+        "event",
+        "scheduled"
+      ],
+      "description": "How the workflow starts."
+    },
+    "workflow_type": {
+      "enum": [
+        "on_demand",
+        "event",
+        "scheduled"
+      ],
+      "description": "Mentioned in docs prose; examples use automation_type."
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "desc": {
+      "type": "string",
+      "description": "Workflow description."
+    },
+    "runner": {
+      "type": "string",
+      "description": "Runner name, e.g. blink_cloud. Empty string = default."
+    },
+    "connections": {
+      "type": "object",
+      "description": "Workflow-level connections: <connection type>: <connection name>.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Input parameters keyed by the id used in {{inputs.<id>}}.",
+      "additionalProperties": {
+        "$ref": "#/definitions/input"
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "description": "Output label -> expression, e.g. \"{{ steps.S1.output }}\".",
+      "additionalProperties": true
+    },
+    "triggers": {
+      "$ref": "#/definitions/triggers"
+    },
+    "steps": {
+      "type": "array",
+      "description": "Legacy top-level steps list (empty in exports).",
+      "items": {}
+    },
+    "workflow": {
+      "type": "array",
+      "description": "List of sections, each holding steps.",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/section"
+      }
+    },
+    "counting_steps": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "definitions": {
+    "expression": {
+      "type": "string",
+      "description": "Plain string or string containing {{ expression }}."
+    },
+    "input": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "text",
+            "number",
+            "single-select",
+            "multi-select",
+            "checkbox",
+            "date",
+            "file"
+          ]
+        },
+        "default": {},
+        "placeholder": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "options": {
+          "type": "array",
+          "description": "Choices for single-select / multi-select."
+        },
+        "options_type": {
+          "type": "string"
+        },
+        "allow_free_text": {
+          "type": "boolean"
+        },
+        "index": {
+          "type": "integer",
+          "description": "Display order."
+        }
+      }
+    },
+    "section": {
+      "type": "object",
+      "required": [
+        "section",
+        "steps"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "section": {
+          "type": "string",
+          "description": "Section title."
+        },
+        "steps": {
+          "$ref": "#/definitions/steps"
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/step"
+      }
+    },
+    "step": {
+      "if": {
+        "required": [
+          "text"
+        ],
+        "not": {
+          "required": [
+            "action"
+          ]
+        }
+      },
+      "then": {
+        "$ref": "#/definitions/textStep"
+      },
+      "else": {
+        "$ref": "#/definitions/actionStep"
+      }
+    },
+    "textStep": {
+      "type": "object",
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false,
+      "description": "Markdown note shown in the editor.",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        }
+      }
+    },
+    "actionStep": {
+      "type": "object",
+      "required": [
+        "action",
+        "id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_-]*$",
+          "description": "Unique step id (exports use S1, S2, ...). Referenced as {{steps.S1.output}}."
+        },
+        "name": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\..+$",
+          "description": "Full action id, e.g. core.emailV2, internal.for, slack.SendMessageV2, automations.<subflow uuid>."
+        },
+        "inputs": {
+          "type": "object",
+          "description": "Action parameters. Keys are internal parameter names (see action catalog), not display names."
+        },
+        "connections": {
+          "type": "object",
+          "description": "Step connections: <connection type>: <connection name>.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "steps": {
+          "$ref": "#/definitions/steps",
+          "description": "Child steps (internal.for, internal.ifCondition, branches, try/catch, ...)."
+        },
+        "transitions": {
+          "type": "array",
+          "description": "Legacy branching for internal.if (docs). Exports use internal.ifCondition + ifTrueBranch/ifFalseBranch child steps.",
+          "items": {
+            "type": "object",
+            "required": [
+              "on"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "on": {
+                "type": [
+                  "boolean",
+                  "string"
+                ]
+              },
+              "steps": {
+                "$ref": "#/definitions/steps"
+              }
+            }
+          }
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Step timeout in seconds."
+        },
+        "continue_on_error": {
+          "type": "boolean",
+          "description": "Keep going if this step fails."
+        },
+        "when": {
+          "description": "Run condition for this step (\"false\" skips it)."
+        },
+        "configuration": {
+          "type": "object",
+          "description": "Subflow call options, e.g. run_async, subflow_future_schedule_time."
+        },
+        "save_output_to_file": {
+          "type": "boolean"
+        },
+        "output_file_identifier": {
+          "type": "string"
+        },
+        "selected_mock_output_state": {
+          "type": "string"
+        }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "match": {
+          "enum": [
+            "And",
+            "Or"
+          ],
+          "description": "How sentences combine (default And)."
+        },
+        "sentence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "lvalue",
+              "op"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "lvalue": {},
+              "op": {
+                "enum": [
+                  "Equals",
+                  "Equals to",
+                  "Not equals",
+                  "Is empty",
+                  "Is not empty",
+                  "Greater than",
+                  "Greater or equals to",
+                  "Less than",
+                  "Less or equals to",
+                  "Contains",
+                  "Not Contains",
+                  "Regex match",
+                  "Is true",
+                  "Is false"
+                ],
+                "description": "Operator names as used in exports; see condition-builder docs for the full list."
+              },
+              "rvalue": {}
+            }
+          }
+        }
+      }
+    },
+    "triggers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scheduled": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "cron"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "trigger_type": {
+                "const": "schedule"
+              },
+              "cron": {
+                "type": "string",
+                "description": "5-field cron, e.g. 0 * * * *."
+              }
+            }
+          }
+        },
+        "webhooks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "token": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "method": {
+                "type": "string"
+              },
+              "trigger_type": {
+                "type": "string",
+                "description": "custom_webhook or an integration webhook trigger."
+              },
+              "condition": {
+                "$ref": "#/definitions/condition"
+              }
+            }
+          }
+        },
+        "polling": {
+          "type": "array",
+          "description": "Integration event triggers, e.g. wiz.OnNewAlert.",
+          "items": {
+            "type": "object",
+            "required": [
+              "trigger_type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "trigger_type": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "inputs": {
+                "type": "object"
+              },
+              "condition": {
+                "$ref": "#/definitions/condition"
+              }
+            }
+          }
+        },
+        "webforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "trigger_type": {
+                "type": "string"
+              },
+              "inputs": {
+                "type": "object"
+              },
+              "condition": {
+                "$ref": "#/definitions/condition"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

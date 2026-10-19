@@ -1,0 +1,42 @@
+# expect:
+name: Notify on new Okta user
+automation_type: on_demand
+desc: Looks up a user in Okta, asks for approval in Slack, then emails.
+runner: blink_cloud
+connections:
+  okta: prod-okta
+inputs:
+  user_id:
+    display_name: User ID
+    type: text
+    required: true
+workflow:
+  - section: Steps
+    steps:
+      - action: okta.GetUser
+        id: S1
+        name: Get user
+        inputs:
+          userId: '{{inputs.user_id}}'
+      - action: system.AskQuestionViaSlack
+        id: S2
+        name: Approve?
+        connections:
+          slack: corp-slack
+        inputs:
+          To: '#it'
+          Question: Approve {{steps.S1.output.profile.email}}?
+          Answers: Yes,No
+      - action: core.emailV2
+        id: S3
+        name: Mail
+        inputs:
+          To: it@example.com
+          Subject: Done
+          Content: '{{steps.S2.output}}'
+          contentType: text/plain
+      - action: automations.00000000-1111-2222-3333-444444444444
+        id: S4
+        name: Cleanup subflow
+        configuration:
+          run_async: true
